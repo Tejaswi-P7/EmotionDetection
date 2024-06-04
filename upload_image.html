@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9; /* Default background color */
+            background-size: cover;
+            background-position: center;
+        }
+        #sidebar {
+            width: 150px;
+            height: 100vh;
+            background-color: #f0f0f0;
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+            border-right: 2px solid #ddd; /* Add border to separate from content */
+        }
+        #index {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #index-heading {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #index ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #index li {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex-grow: 1;
+            margin-left: 170px; /* Adjusted to accommodate sidebar */
+            padding: 20px;
+        }
+        #video-container {
+            width: 400px;
+            height: 300px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #video {
+            width: 100%;
+            height: 100%;
+        }
+        .slider-container {
+            width: 150px; /* Adjusted width */
+            height: 30px; /* Adjusted height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%; 
+            height: 100%; /* Adjusted height */
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .1s background-color; /* Faster transition */
+            transition: .1s background-color; /* Faster transition */
+            border-radius: 15px; /* Adjusted border-radius */
+            border: none; /* Removed border */
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px; /* Adjusted width */
+            height: 25px; /* Adjusted height */
+            background: #d3d3d3; /* Default color */
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.1s; /* Smoother transition */
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px; /* Adjusted width */
+            height: 25px; /* Adjusted height */
+            background: #d3d3d3; /* Default color */
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.1s; /* Smoother transition */
+        }
+
+        #name-button {
+            margin-bottom: 20px; 
+        }
+        #file-input {
+            display: none;
+        }
+        #upload-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div id="index">
+        <h2 id="index-heading">Index</h2>
+        <ul>
+            <li>Anger</li>
+            <li>Fear</li>
+            <li>Happy</li>
+            <li>Surprise</li>
+            <li>Neutral</li>
+            <li>Disgust</li>
+            <li>Sad</li>
+        </ul>
+    </div>
+</div>
+
+<div id="content">
+    <h1>Emotion Detection</h1>
+    <button id="name-button" onclick="showNamePrompt()">Enter your name</button> 
+    <div id="video-container">
+        <video id="video" autoplay></video>
+    </div>
+    <div class="slider-container">
+        <input type="range" min="0" max="1" step="1" value="1" class="slider" id="camera-toggle" onchange="toggleCamera()">
+    </div>
+    <input type="file" id="file-input" accept="image/*" onchange="changeBackground(event)">
+    <label for="file-input" id="upload-button">Upload Background Image</label>
+</div>
+
+<script>
+    // Accessing the webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            var video = document.getElementById('video');
+            video.srcObject = stream;
+            video.onloadedmetadata = function(e) {
+                video.play();
+            };
+        })
+        .catch(function(err) {
+            console.log("An error occurred: " + err);
+        });
+
+    // Function to toggle camera on and off
+    function toggleCamera() {
+        const slider = document.getElementById('camera-toggle');
+        const video = document.getElementById('video');
+        if (slider.value === "1") {
+            video.play();
+            slider.style.backgroundColor = "#4CAF50"; // Green color when camera is on
+        } else {
+            video.pause();
+            slider.style.backgroundColor = "#d3d3d3"; // Grey color when camera is off
+        }
+    }
+
+    // Function to show name prompt
+    function showNamePrompt() {
+        const name = prompt("Please enter your name:");
+        if (name) {
+            // Name entered, show customized message
+            alert('Hi ' + name + ', let\'s see how you\'re feeling today!'); 
+        }
+    }
+
+    // Function to change background image
+    function changeBackground(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.body.style.backgroundImage = url(${e.target.result});
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>

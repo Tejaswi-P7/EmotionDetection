@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            background-image: url("C:\Users\Tejaswi\OneDrive\Documents\EMOTION DETECTION\Emotiondetection1\bg.jpg"); /* Adjust URL as needed */
+            background-size: cover;
+            background-position: center;
+        }
+        #sidebar {
+            width: 150px;
+            height: 100vh;
+            background-color: #f0f0f0;
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+            border-right: 2px solid #ddd;
+        }
+        #index {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #index-heading {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #index ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #index li {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #index a {
+            color: black;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            display: block;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        #index a:hover {
+            color: white;
+            background-color: #000;
+        }
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex-grow: 1;
+            margin-left: 170px;
+            padding: 20px;
+        }
+        #video-container {
+            width: 640px;
+            height: 480px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        #video, #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #overlay {
+            z-index: 10;
+        }
+        .slider-container {
+            width: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%; 
+            height: 100%;
+            background: #4CAF50;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .1s background-color;
+            transition: .1s background-color;
+            border-radius: 15px;
+            border: none;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.1s;
+        }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.1s;
+        }
+        #name-button {
+            margin-bottom: 20px; 
+        }
+    </style>
+</head>
+<body>
+<div id="sidebar">
+    <div id="index">
+        <h2 id="index-heading">Index</h2>
+        <ul>
+            <li class="anger"><a href="anger.html">Anger</a></li>
+            <li class="surprise"><a href="surprise.html">Surprise</a></li>
+            <li class="happy"><a href="happy.html">Happy</a></li>
+            <li class="disgust"><a href="disgust.html">Disgust</a></li>
+            <li class="sad"><a href="sad.html">Sad</a></li>
+            <li class="fear"><a href="fear.html">Fear</a></li>
+            <li class="neutral"><a href="neutral.html">Neutral</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="content">
+    <h1>Emotion Detection</h1>
+    <button id="name-button" onclick="showNamePrompt()">Enter your name</button>
+    <div id="video-container">
+        <video id="video" autoplay></video>
+        <canvas id="overlay"></canvas>
+    </div>
+    <div class="slider-container">
+        <input type="range" min="0" max="1" step="1" value="1" class="slider" id="camera-toggle" onchange="toggleCamera()">
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const ctx = overlay.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            video.srcObject = stream;
+            video.onloadedmetadata = function() {
+                video.play();
+                overlay.width = video.videoWidth;
+                overlay.height = video.videoHeight;
+                setInterval(captureAndSendFrame, 1000);
+            };
+        })
+        .catch(function(err) {
+            console.error("Error accessing the webcam: " + err);
+        });
+
+    function toggleCamera() {
+        const slider = document.getElementById('camera-toggle');
+        if (slider.value === "1") {
+            video.play();
+        } else {
+            video.pause();
+        }
+    }
+
+    function showNamePrompt() {
+        const name = prompt("Please enter your name:");
+        if (name) {
+            alert('Hi ' + name + ', let\'s see how you\'re feeling today!');
+        }
+    }
+
+    function captureAndSendFrame() {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append('image', blob, 'frame.jpg');
+            fetch('http://localhost:5000/detect-emotion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                drawEmotions(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 'image/jpeg');
+    }
+
+    function drawEmotions(data) {
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+        data.forEach(detected => {
+            const { box, emotion } = detected;
+            const [x, y, w, h] = box;
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(emotion, x, y - 10);
+        });
+    }
+</script>
+
+</body>
+</html>
+
